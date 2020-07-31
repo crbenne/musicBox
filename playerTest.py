@@ -4,7 +4,8 @@ import tkinter
 import tkinter.font
 
 playerWindow = tkinter.Tk()
-playerWindow.title("Playlist")
+playerWindow.geometry("480x320")
+playerWindow.title("Music Box")
 myFont = tkinter.font.Font(family='Helvetica', size=12, weight="bold")
 
 def prevTrack():
@@ -22,21 +23,36 @@ def nextTrack():
 def exitProgram():
 	playerWindow.quit()
 
-# define and place all our UI elements in the window
-instructions = tkinter.Label(playerWindow, text="Use the buttons below to control playback", font=myFont)
-instructions.pack()
+def addAlbum():
+	scanWindow = tkinter.Tk()
+	scanWindow.title("Scan barcode")
+	
+	barcodeEntry = tkinter.Entry(scanWindow, font=myFont, width=20)
+	barcodeEntry.grid(row=1)
+	
+	cancelButton = tkinter.Button(scanWindow, text='Cancel', font=myFont)
+	cancelButton.grid(row=2)
+	
+	scanWindow.mainloop()
+
+def clearTracks():
+	playlistBox.delete("1.0", tkinter.END)
 
 # frame for playlist
 playlistFrame = tkinter.Frame(playerWindow)
 playlistFrame.pack()
-playlistBox = tkinter.Text(playlistFrame, width=40, height=8)
+playlistBox = tkinter.Text(playlistFrame, width=50, height=11)
 playlistBox.pack()
 
-# frame for transport controls
+# frame for control buttons 
 controlFrame = tkinter.Frame()
 controlFrame.pack()
 
-# pack the control buttons into the frame
+# frame for extra buttons
+extraFrame = tkinter.Frame()
+extraFrame.pack()
+
+# pack the control buttons into controlFrame
 prevButton = tkinter.Button(controlFrame, text="<<", font=myFont, command=prevTrack)
 prevButton.pack(side=tkinter.LEFT)
 stopButton = tkinter.Button(controlFrame, text="[]", font=myFont, command=stopTrack)
@@ -45,8 +61,11 @@ pauseButton = tkinter.Button(controlFrame, text=">", font=myFont, command=pauseT
 pauseButton.pack(side=tkinter.LEFT)
 nextButton = tkinter.Button(controlFrame, text=">>", font=myFont, command=nextTrack)
 nextButton.pack(side=tkinter.LEFT)
-exitButton = tkinter.Button(playerWindow, text='Exit', font=myFont, command=exitProgram)
-exitButton.pack()
 
+# pack the extra buttons into extraFrame
+addButton = tkinter.Button(extraFrame, text='Add', font=myFont, command=addAlbum)
+addButton.pack(side=tkinter.LEFT)
+clearButton = tkinter.Button(extraFrame, text='Clear', font=myFont, command=clearTracks)
+clearButton.pack(side=tkinter.LEFT)
 
 playerWindow.mainloop()
