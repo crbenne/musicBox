@@ -38,7 +38,7 @@ def exitProgram():
 	scanWindow.quit()
 
 # set up connection to SQLite3 database
-conn = sqlite3.connect("/home/pi/music.db")
+conn = sqlite3.connect("/home/pi/musicBox/music.db")
 curs = conn.cursor()
 
 # set up initial window parameters

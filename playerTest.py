@@ -2,6 +2,8 @@
 
 import tkinter
 import tkinter.font
+import sqlite3
+import vlc
 
 playerWindow = tkinter.Tk()
 playerWindow.geometry("480x320")
@@ -22,19 +24,54 @@ def nextTrack():
 
 def exitProgram():
 	playerWindow.quit()
+	
+def scanHandler():
+	fetchAlbum(barcodeEntry.get())
+	
+def fetchAlbum():
 
+	# set up connection to SQLite3 database
+	conn = sqlite3.connect("/home/pi/musicBox/music.db")
+	curs = conn.cursor()
+
+	# find the path to the files using the barcode
+	query = "SELECT albumPath FROM albums WHERE albumID = " + str(barcode)
+	curs.execute(query)
+	result = curs.fetchall()
+
+	# if we find a match in the database
+	if result:
+		for x in result:
+			# filePath = x[0] + "*.mp3"
+			filePath = "/music/Led Zeppelin - Led Zeppelin II/07 Ramble On.mp3"
+			playlistBox.insert("1.0", str(filePath))
+			# print(filePath)
+			# awful prototype hack using a system call to mpg123
+			# os.system('mpg123 ' + filePath)
+			
+			# much better using VLC to play the files
+			# player = vlc.MediaPlayer(filePath)
+			# player.play()
+
+
+	# no matching album ID in the database, print a helpful error message
+	else:
+		error = tkinter.Label(text="No matching album found", font=myFont)
+		error.grid(row=3)
+		
 def addAlbum():
 	scanWindow = tkinter.Tk()
 	scanWindow.title("Scan barcode")
 	
 	barcodeEntry = tkinter.Entry(scanWindow, font=myFont, width=20)
 	barcodeEntry.grid(row=1)
-	
+	barcodeEntry.bind('<Return>', scanHandler)
+
 	cancelButton = tkinter.Button(scanWindow, text='Cancel', font=myFont)
 	cancelButton.grid(row=2)
-	
-	scanWindow.mainloop()
 
+	scanWindow.mainloop()
+	
 def clearTracks():
 	playlistBox.delete("1.0", tkinter.END)
 
