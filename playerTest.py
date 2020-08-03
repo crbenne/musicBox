@@ -25,10 +25,10 @@ def nextTrack():
 def exitProgram():
 	playerWindow.quit()
 	
-def scanHandler():
+def scanHandler(event=None):
 	fetchAlbum(barcodeEntry.get())
 	
-def fetchAlbum():
+def fetchAlbum(barcode):
 
 	# set up connection to SQLite3 database
 	conn = sqlite3.connect("/home/pi/musicBox/music.db")
@@ -42,9 +42,12 @@ def fetchAlbum():
 	# if we find a match in the database
 	if result:
 		for x in result:
-			# filePath = x[0] + "*.mp3"
-			filePath = "/music/Led Zeppelin - Led Zeppelin II/07 Ramble On.mp3"
-			playlistBox.insert("1.0", str(filePath))
+			filePath = x[0] + "/*.mp3"
+			# filePath = "/music/Led Zeppelin - Led Zeppelin II/07 Ramble On.mp3"
+			if playlistBox.compare("end-1c", "==", "1.0"):
+				playlistBox.insert(tkinter.CURRENT, str(filePath))
+			else:
+				playlistBox.insert(tkinter.CURRENT, "\n" + str(filePath))
 			# print(filePath)
 			# awful prototype hack using a system call to mpg123
 			# os.system('mpg123 ' + filePath)
@@ -56,21 +59,11 @@ def fetchAlbum():
 
 	# no matching album ID in the database, print a helpful error message
 	else:
-		error = tkinter.Label(text="No matching album found", font=myFont)
-		error.grid(row=3)
+		if playlistBox.compare("end-1c", "==", "1.0"):
+			playlistBox.insert(tkinter.CURRENT, "No matching album found!")
+		else:
+			playlistBox.insert(tkinter.CURRENT, "\nNo matching album found!")
 		
-def addAlbum():
-	scanWindow = tkinter.Tk()
-	scanWindow.title("Scan barcode")
-	
-	barcodeEntry = tkinter.Entry(scanWindow, font=myFont, width=20)
-	barcodeEntry.grid(row=1)
-	barcodeEntry.bind('<Return>', scanHandler)
-
-	cancelButton = tkinter.Button(scanWindow, text='Cancel', font=myFont)
-	cancelButton.grid(row=2)
-
-	scanWindow.mainloop()
 	
 def clearTracks():
 	playlistBox.delete("1.0", tkinter.END)
@@ -99,10 +92,13 @@ pauseButton.pack(side=tkinter.LEFT)
 nextButton = tkinter.Button(controlFrame, text=">>", font=myFont, command=nextTrack)
 nextButton.pack(side=tkinter.LEFT)
 
-# pack the extra buttons into extraFrame
-addButton = tkinter.Button(extraFrame, text='Add', font=myFont, command=addAlbum)
-addButton.pack(side=tkinter.LEFT)
-clearButton = tkinter.Button(extraFrame, text='Clear', font=myFont, command=clearTracks)
+# pack the extra widgets into extraFrame
+barcodeLabel = tkinter.Label(extraFrame, text="UPC Code", font=myFont)
+barcodeLabel.pack(side=tkinter.LEFT)
+barcodeEntry = tkinter.Entry(extraFrame, font=myFont, width=20)
+barcodeEntry.pack(side=tkinter.LEFT)
+barcodeEntry.bind('<Return>', scanHandler)
+clearButton = tkinter.Button(extraFrame, text='Clear list', font=myFont, command=clearTracks)
 clearButton.pack(side=tkinter.LEFT)
 
 playerWindow.mainloop()
