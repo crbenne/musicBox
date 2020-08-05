@@ -4,11 +4,15 @@ import tkinter
 import tkinter.font
 import sqlite3
 import vlc
+from pathlib import Path
 
 playerWindow = tkinter.Tk()
 playerWindow.geometry("480x320")
 playerWindow.title("Music Box")
 myFont = tkinter.font.Font(family='Helvetica', size=12, weight="bold")
+playlistFont = tkinter.font.Font(family='Helvetica', size=9)
+
+rootMusicPath = Path("/music/")
 
 def prevTrack():
 	playerWindow.quit()
@@ -30,6 +34,8 @@ def scanHandler(event=None):
 	
 def fetchAlbum(barcode):
 
+	barcodeEntry.delete(0, tkinter.END)
+
 	# set up connection to SQLite3 database
 	conn = sqlite3.connect("/home/pi/musicBox/music.db")
 	curs = conn.cursor()
@@ -42,28 +48,15 @@ def fetchAlbum(barcode):
 	# if we find a match in the database
 	if result:
 		for x in result:
-			filePath = x[0] + "/*.mp3"
-			# filePath = "/music/Led Zeppelin - Led Zeppelin II/07 Ramble On.mp3"
-			if playlistBox.compare("end-1c", "==", "1.0"):
-				playlistBox.insert(tkinter.CURRENT, str(filePath))
-			else:
-				playlistBox.insert(tkinter.CURRENT, "\n" + str(filePath))
-			# print(filePath)
-			# awful prototype hack using a system call to mpg123
-			# os.system('mpg123 ' + filePath)
-			
-			# much better using VLC to play the files
-			# player = vlc.MediaPlayer(filePath)
-			# player.play()
-
+			albumPath = rootMusicPath / x[0]
+			# playlistBox.insert(tkinter.CURRENT, str(albumPath))
+			fileList = sorted(albumPath.glob('*.mp3'))
+			for y in fileList:
+				playlistBox.insert(tkinter.CURRENT, str(y.stem) + "\n")
 
 	# no matching album ID in the database, print a helpful error message
 	else:
-		if playlistBox.compare("end-1c", "==", "1.0"):
-			playlistBox.insert(tkinter.CURRENT, "No matching album found!")
-		else:
-			playlistBox.insert(tkinter.CURRENT, "\nNo matching album found!")
-		
+		playlistBox.insert(tkinter.CURRENT, "No matching album found!\n")
 	
 def clearTracks():
 	playlistBox.delete("1.0", tkinter.END)
@@ -71,7 +64,7 @@ def clearTracks():
 # frame for playlist
 playlistFrame = tkinter.Frame(playerWindow)
 playlistFrame.pack()
-playlistBox = tkinter.Text(playlistFrame, width=50, height=11)
+playlistBox = tkinter.Text(playlistFrame, width=60, height=14, font=playlistFont)
 playlistBox.pack()
 
 # frame for control buttons 
