@@ -64,16 +64,22 @@ def clearTracks():
 # frame for playlist
 playlistFrame = tkinter.Frame(playerWindow)
 playlistFrame.pack()
-playlistBox = tkinter.Text(playlistFrame, width=60, height=14, font=playlistFont)
+
+# playlist widget
+playlistBox = tkinter.Text(playlistFrame, width=60, height=12, font=playlistFont)
 playlistBox.pack()
+
+# frame for now playing label
+npFrame = tkinter.Frame()
+npFrame.pack(fill=tkinter.X)
+
+# add a "Now Playing:" label in the controlFrame
+npLabel = tkinter.Label(npFrame, text="Now playing:", font=myFont)
+npLabel.pack(anchor=tkinter.W, padx=10)
 
 # frame for control buttons 
 controlFrame = tkinter.Frame()
 controlFrame.pack()
-
-# frame for extra buttons
-extraFrame = tkinter.Frame()
-extraFrame.pack()
 
 # pack the control buttons into controlFrame
 prevButton = tkinter.Button(controlFrame, text="<<", font=myFont, command=prevTrack)
@@ -84,6 +90,10 @@ pauseButton = tkinter.Button(controlFrame, text=">", font=myFont, command=pauseT
 pauseButton.pack(side=tkinter.LEFT)
 nextButton = tkinter.Button(controlFrame, text=">>", font=myFont, command=nextTrack)
 nextButton.pack(side=tkinter.LEFT)
+
+# frame for extra buttons
+extraFrame = tkinter.Frame()
+extraFrame.pack()
 
 # pack the extra widgets into extraFrame
 barcodeLabel = tkinter.Label(extraFrame, text="UPC Code", font=myFont)
