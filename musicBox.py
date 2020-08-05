@@ -1,64 +1,97 @@
 #!/usr/bin/python3
 
-import sqlite3
 import tkinter
 import tkinter.font
+import sqlite3
 import vlc
+from pathlib import Path
 
-def parseInput(event=None):
-	playAlbum(albumIDEntry.get())
+playerWindow = tkinter.Tk()
+playerWindow.geometry("480x320")
+playerWindow.title("Music Box")
+myFont = tkinter.font.Font(family='Helvetica', size=12, weight="bold")
+playlistFont = tkinter.font.Font(family='Helvetica', size=9)
+
+rootMusicPath = Path("/music/")
+
+def prevTrack():
+	playerWindow.quit()
+
+def pauseTrack():
+	playerWindow.quit()
+
+def stopTrack():
+	playerWindow.quit()
+
+def nextTrack():
+	playerWindow.quit()
+
+def exitProgram():
+	playerWindow.quit()
 	
-def playAlbum(searchID):
+def scanHandler(event=None):
+	fetchAlbum(barcodeEntry.get())
 	
-	# find the path to the files using the album ID
-	query = "SELECT albumPath FROM albums WHERE albumID = " + str(searchID)
+def fetchAlbum(barcode):
+
+	barcodeEntry.delete(0, tkinter.END)
+
+	# set up connection to SQLite3 database
+	conn = sqlite3.connect("/home/pi/musicBox/music.db")
+	curs = conn.cursor()
+
+	# find the path to the files using the barcode
+	query = "SELECT albumPath FROM albums WHERE albumID = " + str(barcode)
 	curs.execute(query)
 	result = curs.fetchall()
 
 	# if we find a match in the database
 	if result:
 		for x in result:
-			# filePath = x[0] + "*.mp3"
-			filePath = "/music/Led Zeppelin - Led Zeppelin II/07 Ramble On.mp3"
-			# print(filePath)
-			# awful prototype hack using a system call to mpg123
-			# os.system('mpg123 ' + filePath)
-			
-			# much better using VLC to play the files
-			player = vlc.MediaPlayer(filePath)
-			player.play()
-
+			albumPath = rootMusicPath / x[0]
+			# playlistBox.insert(tkinter.CURRENT, str(albumPath))
+			fileList = sorted(albumPath.glob('*.mp3'))
+			for y in fileList:
+				playlistBox.insert(tkinter.CURRENT, str(y.stem) + "\n")
 
 	# no matching album ID in the database, print a helpful error message
 	else:
-		error = tkinter.Label(text="No matching album found", font=myFont)
-		error.grid(row=3)
-		
-def exitProgram():
-	scanWindow.quit()
+		playlistBox.insert(tkinter.CURRENT, "No matching album found!\n")
+	
+def clearTracks():
+	playlistBox.delete("1.0", tkinter.END)
 
-# set up connection to SQLite3 database
-conn = sqlite3.connect("/home/pi/musicBox/music.db")
-curs = conn.cursor()
+# frame for playlist
+playlistFrame = tkinter.Frame(playerWindow)
+playlistFrame.pack()
+playlistBox = tkinter.Text(playlistFrame, width=60, height=14, font=playlistFont)
+playlistBox.pack()
 
-# set up initial window parameters
-scanWindow = tkinter.Tk()
-scanWindow.title("Music Box")
-myFont = tkinter.font.Font(family='Helvetica', size=12, weight="bold")
+# frame for control buttons 
+controlFrame = tkinter.Frame()
+controlFrame.pack()
 
-# define and place all our UI elements in the window
-instructions = tkinter.Label(scanWindow, text="Scan the album barcode to play", font=myFont)
-instructions.grid(row=1)
-albumIDEntry = tkinter.Entry(scanWindow, font=myFont, width=20)
-albumIDEntry.grid(row=2)
-albumIDEntry.bind('<Return>', parseInput)
-exitButton=tkinter.Button(scanWindow, text='Exit', font=myFont, command=exitProgram, bg='cyan', height=1, width=6)
-exitButton.grid(row=4)
+# frame for extra buttons
+extraFrame = tkinter.Frame()
+extraFrame.pack()
 
-scanWindow.mainloop()
+# pack the control buttons into controlFrame
+prevButton = tkinter.Button(controlFrame, text="<<", font=myFont, command=prevTrack)
+prevButton.pack(side=tkinter.LEFT)
+stopButton = tkinter.Button(controlFrame, text="[]", font=myFont, command=stopTrack)
+stopButton.pack(side=tkinter.LEFT)
+pauseButton = tkinter.Button(controlFrame, text=">", font=myFont, command=pauseTrack)
+pauseButton.pack(side=tkinter.LEFT)
+nextButton = tkinter.Button(controlFrame, text=">>", font=myFont, command=nextTrack)
+nextButton.pack(side=tkinter.LEFT)
 
-# show the scan window
-# look for the album in the database
-  # add the files to a playlist
-  # open the player window
-  # play the playlist
+# pack the extra widgets into extraFrame
+barcodeLabel = tkinter.Label(extraFrame, text="UPC Code", font=myFont)
+barcodeLabel.pack(side=tkinter.LEFT)
+barcodeEntry = tkinter.Entry(extraFrame, font=myFont, width=20)
+barcodeEntry.pack(side=tkinter.LEFT)
+barcodeEntry.bind('<Return>', scanHandler)
+clearButton = tkinter.Button(extraFrame, text='Clear list', font=myFont, command=clearTracks)
+clearButton.pack(side=tkinter.LEFT)
+
+playerWindow.mainloop()
