@@ -4,6 +4,7 @@ import tkinter
 import tkinter.font
 import sqlite3
 import vlc
+import time
 from pathlib import Path
 
 playerWindow = tkinter.Tk()
@@ -13,6 +14,9 @@ myFont = tkinter.font.Font(family='Helvetica', size=12, weight="bold")
 playlistFont = tkinter.font.Font(family='Helvetica', size=9)
 
 rootMusicPath = Path("/music/")
+
+playlist = []
+player = vlc.Instance()
 
 def prevTrack():
 	playerWindow.quit()
@@ -49,14 +53,19 @@ def fetchAlbum(barcode):
 	if result:
 		for x in result:
 			albumPath = rootMusicPath / x[0]
-			# playlistBox.insert(tkinter.CURRENT, str(albumPath))
 			fileList = sorted(albumPath.glob('*.mp3'))
 			for y in fileList:
 				playlistBox.insert(tkinter.CURRENT, str(y.stem) + "\n")
+				playlist.append(y)
 
 	# no matching album ID in the database, print a helpful error message
 	else:
-		playlistBox.insert(tkinter.CURRENT, "No matching album found!\n")
+		barcodeEntry.insert(0, "No match!")
+		# time.sleep(3)
+		# barcodeEntry.delete(0, tkinter.END)
+		# playlistBox.insert(tkinter.CURRENT, "No matching album found!\n")
+
+	conn.close()
 	
 def clearTracks():
 	playlistBox.delete("1.0", tkinter.END)
