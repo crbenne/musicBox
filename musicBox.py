@@ -7,16 +7,23 @@ import vlc
 import time
 from pathlib import Path
 
+# set some of the main window properties
 playerWindow = tkinter.Tk()
 playerWindow.geometry("480x320")
 playerWindow.title("Music Box")
 myFont = tkinter.font.Font(family='Helvetica', size=12, weight="bold")
 playlistFont = tkinter.font.Font(family='Helvetica', size=9)
 
+# the root directory where music will be stored
 rootMusicPath = Path("/music/")
 
+# persistent playlist variable
 playlist = []
+
+# create the VLC objects we need -- a player, a media list, and a media list player
 player = vlc.Instance()
+mediaList = player.media_list_new()
+listPlayer = player.media_list_player_new()
 
 def prevTrack():
 	playerWindow.quit()
@@ -54,9 +61,21 @@ def fetchAlbum(barcode):
 		for x in result:
 			albumPath = rootMusicPath / x[0]
 			fileList = sorted(albumPath.glob('*.mp3'))
+			# if there are already entries in the playlist, we want to insert the new songs at the end
+			# and not interrupt playback of the current list
+			# get the number of items currently in the list
+			mediaListCount = mediaList.count()
 			for y in fileList:
+				# write a 'nicer' string with just the filename in the player window
 				playlistBox.insert(tkinter.CURRENT, str(y.stem) + "\n")
+				# append the media to the persistent playlist
 				playlist.append(y)
+				mediaList.insert_media(vlc.Media(str(y)), mediaListCount)
+				# if you want to see the MRL for the media in the window (debug)
+				# playlistBox.insert(tkinter.CURRENT, mediaList.item_at_index(mediaListCount).get_mrl() + "\n")
+				mediaListCount += 1
+
+		listPlayer.set_media_list(mediaList)
 
 	# no matching album ID in the database, print a helpful error message
 	else:
@@ -68,7 +87,16 @@ def fetchAlbum(barcode):
 	conn.close()
 	
 def clearTracks():
+	# clear everything displayed in the playlist window
 	playlistBox.delete("1.0", tkinter.END)
+	# clear the playlist list
+	playlist.clear()
+	# clear the media list
+	mediaListCount = mediaList.count()
+	i = 0
+	while i < mediaListCount:
+		mediaList.remove_index(0)
+		i += 1
 
 # frame for playlist
 playlistFrame = tkinter.Frame(playerWindow)
