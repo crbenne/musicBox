@@ -12,13 +12,14 @@ playerWindow = tkinter.Tk()
 playerWindow.geometry("480x320")
 playerWindow.title("Music Box")
 myFont = tkinter.font.Font(family='Helvetica', size=12, weight="bold")
-playlistFont = tkinter.font.Font(family='Helvetica', size=9)
+playlistFont = tkinter.font.Font(family='Helvetica', size=10)
 
 # the root directory where music will be stored
 rootMusicPath = Path("/music/")
 
 # persistent playlist variable
 playlist = []
+playlistPos = 0
 
 # create the VLC objects we need -- a player, a media list, and a media list player
 player = vlc.Instance()
@@ -26,16 +27,23 @@ mediaList = player.media_list_new()
 listPlayer = player.media_list_player_new()
 
 def prevTrack():
-	playerWindow.quit()
+	listPlayer.previous()
 
 def pauseTrack():
-	playerWindow.quit()
+	if listPlayer.is_playing():
+		listPlayer.pause()
+		pauseButton.config(text=">")
+	else:
+		listPlayer.play()
+		pauseButton.config(text="||")
 
 def stopTrack():
-	playerWindow.quit()
+	if listPlayer.is_playing():
+		listPlayer.stop()
+		pauseButton.config(text=">")
 
 def nextTrack():
-	playerWindow.quit()
+	listPlayer.next()
 
 def exitProgram():
 	playerWindow.quit()
@@ -76,6 +84,8 @@ def fetchAlbum(barcode):
 				mediaListCount += 1
 
 		listPlayer.set_media_list(mediaList)
+		listPlayer.play_item_at_index(0)
+		pauseButton.config(text="||")
 
 	# no matching album ID in the database, print a helpful error message
 	else:
@@ -87,9 +97,12 @@ def fetchAlbum(barcode):
 	conn.close()
 	
 def clearTracks():
+
+	# stop the player
+	listPlayer.stop()
 	# clear everything displayed in the playlist window
 	playlistBox.delete("1.0", tkinter.END)
-	# clear the playlist list
+	# clear the playlist
 	playlist.clear()
 	# clear the media list
 	mediaListCount = mediaList.count()
@@ -103,7 +116,7 @@ playlistFrame = tkinter.Frame(playerWindow)
 playlistFrame.pack()
 
 # playlist widget
-playlistBox = tkinter.Text(playlistFrame, width=60, height=12, font=playlistFont)
+playlistBox = tkinter.Text(playlistFrame, width=60, height=11, font=playlistFont)
 playlistBox.pack()
 
 # frame for now playing label
