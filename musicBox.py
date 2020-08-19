@@ -21,7 +21,7 @@ rootMusicPath = Path("/music/")
 playlist = []
 playlistPos = 0
 
-# create the VLC objects we need -- a player, a media list, a media list player, and an event manager
+# create the VLC objects we need -- a player, a media list, a media list player, and an event manager for the media player in the media list player
 player = vlc.Instance()
 mediaList = player.media_list_new()
 listPlayer = player.media_list_player_new()
@@ -83,28 +83,30 @@ def fetchAlbum(barcode):
 	# if we find a match in the database
 	if result:
 		for x in result:
+			# append the path from the match in the database to the root music path
 			albumPath = rootMusicPath / x[0]
+			# get a list of mp3 files from the path, alphanumerically sorted (assuming they have track numbers at the start)
 			fileList = sorted(albumPath.glob('*.mp3'))
-			# if there are already entries in the playlist, we want to insert the new songs at the end
-			# and not interrupt playback of the current list
-			# get the number of items currently in the list
+			# find out how many items are currently in the media list so we can insert any new items at the correct position
 			mediaListCount = mediaList.count()
+			# loop through each mp3 file found in the path
 			for y in fileList:
-				# write a 'nicer' string with just the filename in the player window
+				# write a 'nicer' string with just the filename with no extension (the stem) in the player window
 				playlistBox.insert(tkinter.CURRENT, str(y.stem) + "\n")
-				# append the media to the persistent playlist
+				# append the media to the internal playlist
 				playlist.append(y)
+				# add the media to the media list
 				mediaList.insert_media(vlc.Media(str(y)), mediaListCount)
-				# if you want to see the MRL for the media in the window (debug)
-				# playlistBox.insert(tkinter.CURRENT, mediaList.item_at_index(mediaListCount).get_mrl() + "\n")
 				mediaListCount += 1
 
-		listPlayer.set_media_list(mediaList)
-		listPlayer.play_item_at_index(0)
-		pauseButton.config(text="||")
-		npLabel.config(text="Now playing: " + str(playlist[playlistPos].stem))
+		# if the player is already playing something, we don't want to interrupt this -- so only do these if it's not playing
+		if not listPlayer.is_playing():
+			listPlayer.set_media_list(mediaList)
+			listPlayer.play_item_at_index(0)
+			pauseButton.config(text="||")
+			npLabel.config(text="Now playing: " + str(playlist[playlistPos].stem))
 
-	# no matching album ID in the database, print a helpful error message
+	# no matching album ID in the database, probably good to display an error but right now just blanks the entry box
 	else:
 		# barcodeEntry.insert(0, "No match!")
 		# time.sleep(3)
