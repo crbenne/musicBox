@@ -146,7 +146,10 @@ playlistFrame.pack()
 
 # playlist widget
 playlistBox = tkinter.Text(playlistFrame, width=60, height=11, font=playlistFont)
-playlistBox.pack()
+playlistBox.pack(side="left")
+scrollY = tkinter.Scrollbar(playlistFrame, orient="vertical", command=playlistBox.yview)
+scrollY.pack(side="left", expand=True, fill="y")
+playlistBox.configure(yscrollcommand=scrollY.set)
 
 # frame for now playing label
 npFrame = tkinter.Frame()
